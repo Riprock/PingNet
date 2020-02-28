@@ -1,0 +1,4 @@
+TODO:
+    Make the command system argument based instead of "menu" based
+    Start working on the beacon
+    Setup multiple ways to send the comands. So either all in one ping or across multple pings
