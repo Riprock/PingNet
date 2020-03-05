@@ -1,0 +1,9 @@
+Comand Design(Writing this to make it easer when writing the command itnerpreter in beacon.py)
+First character
+a - Add(for adding shortcut commands{Meant to reduce amount of data in the packet to not rise more suspicion})
+e - execute(execute a command)
+
+if e
+2nd character
+c - for use of cmd
+p - for use of powershell

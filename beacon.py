@@ -1,7 +1,11 @@
 from scapy.all import *
 from collections import Counter
 def cmd_mon(pkt):
-    print("Test")
+    if str(pkt.getlayer(ICMP).type) == "8":
+        print(pkt.show())
+        print(pkt.getlayer(ICMP).type)
+        print(pkt.getlayer(ICMP).load.decode())
+
 
 packet_counts = Counter()
 
@@ -17,6 +21,6 @@ def custom_action(packet):
 ## Print out packet count per A <--> Z address pair
 print("\n".join(f"{f'{key[0]} <--> {key[1]}'}: {count}" for key, count in packet_counts.items()))
 
-sniff(filter="icmp", prn=custom_action)
+sniff(filter="icmp", prn=cmd_mon)
 
 #Coppied this code to learn how the sniff funciton works
