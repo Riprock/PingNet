@@ -3,7 +3,7 @@ This is creating a beacon network through the use of the ICMP protocol and more 
 The use case is a competition environment where some machines have ping check for scoring thus ping has to be allowed through the firewall.
 Since ping is a check, it makes for a good lateral movement point.
 
-##Usage
+## Usage
 Server
 ```bash
 pyhton3 server.py
