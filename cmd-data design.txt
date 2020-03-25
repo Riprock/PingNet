@@ -8,7 +8,6 @@ if e
     2nd character
     c - for use of cmd
     p - for use of powershell
-    l - linux subsystem(if installed)
 
     3rd character
     space
@@ -21,7 +20,6 @@ if a
     2nd character
     c - for use of cmd
     p - for use of powershell
-    l - linux subsystem(if installed)
 
     3rd character
     number to associate with as each cmd
