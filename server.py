@@ -1,5 +1,4 @@
 import csv
-import threading
 from scapy.all import *
 
 teams = []
@@ -31,6 +30,8 @@ def main():
         if cmd == "exit":
             print("Closing")
             break
+        elif cmd == "help":
+            print("\nPingnet Help\ncallbacks(NI) - view all systems that have beat back\nexit - exits ping net\nhelp - Displays this help menu\nlookup <team number(NI) or specific device> - Lookup infomration on a specific device\nlist(NI) - list all of the stored systems\nsend - Enters the send prompts to send either files(not implemented) or commands to the client device\n")
         elif cmd == "lookup":
             lookup = input("What information to pull:")
             try:
@@ -45,12 +46,15 @@ def main():
             send.append(input("Command:"))
             target = input("Target:") # this is going to use the numbering system that is already in use for organization of the teams and their boxes
             print(send)
-            msg = ''.join(send)
+            msg = ' '.join(send)
             print(msg)
             ack = False
             print(teams[int(target[0])-1][int(target[1])-1][1])
-            rpckt = sr1(IP(dst=teams[int(target[0])-1][int(target[1])-1][1])/ICMP()/msg)
-            print(rpckt.show())
+            #rpckt = sr1(IP(dst=teams[int(target[0])-1][int(target[1])-1][1])/ICMP()/msg)
+            #print(rpckt.show())
+        else:
+            print("Invalid command")
+
 
 main()
 #The reason for so many inputs is because I want to see how im going to lay out the command structure. Once that is done

