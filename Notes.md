@@ -13,3 +13,6 @@ Need to make sure an ack ping packet(not reply) gets sent from this machine as c
 
 Far off idea but maybe some kind of visual board to show callbacks
 
+# Testing Notes
+   - Need to add IP to filter beucase random pings will break it
+   - Need to do sanitization becuase spaces will break it
