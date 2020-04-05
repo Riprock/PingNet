@@ -1,9 +1,10 @@
 from scapy.all import *
 import csv
+import sys
 
 teams = []
 cmdproc = [["l", "wsl"], ["p", "powershell"], ["c", "cmd"]]
-
+verbose = False
 
 def setup():
     # int(input("How many teams are competing?"))
@@ -33,6 +34,7 @@ def resp_mgmt(pkt):
 
 
 def shell():
+    global verbose
     print("Welcome to PingNet")
     while True:
         cmd = input("Pingnet:")
@@ -54,20 +56,25 @@ def shell():
             send.append(input("CMD Processor:"))
             send.append(input("Command:"))
             target = input("Target:")  # this is going to use the numbering system that is already in use for organization of the teams and their boxes
-            print(send)
             msg = ' '.join(send)
-            print(msg)
-            ack = False
-            print(teams[int(target[0]) - 1][int(target[1]) - 1][1])
-            # rpckt = sr1(IP(dst=teams[int(target[0])-1][int(target[1])-1][1])/ICMP()/msg)
-            # print(rpckt.show())
+            rpckt = sr1(IP(dst=teams[int(target[0])-1][int(target[1])-1][1])/ICMP()/msg)
+            if verbose:
+                print(f'Send list:{send}')
+                print(f'Msg:{msg}')
+                print(f'Target IP:{teams[int(target[0]) - 1][int(target[1]) - 1][1]}')
+                print(f'Return Packet:\n {rpckt.show()}')
         else:
             print("Invalid command")
 
 
 def main():
-    setup()
-    shell()
+    global verbose
+    try:
+        if sys.argv[1] == "-v":
+            verbose = True
+    finally:
+        setup()
+        shell()
 
 
 main()
