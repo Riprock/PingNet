@@ -11,8 +11,11 @@
   
 
 ## Testing Notes
-   - Need to do sanitization becuase spaces will break it
-   - Sending a ping cmd to the client is a bad idea It just will not work. Have to investigate(This might just be irrelevant because thats just not something that should be done)
+   - Fix the exit system. Need to better kill the threads
+   - Fix the output. So much print
+   - Fix the dupilcate packets issue, Need to step through the code
+      - Thoughts on this
+      - Its the listeners that is like doing this so I need to put a some kind of identifier somewhere to acknowldge where the packet is comming from so that it can be ignored as this is activing the falure conditon in the beacon where it should never be executed
    
 
 IF I go with heartbeat from server
@@ -29,3 +32,12 @@ Far off idea but maybe some kind of visual board to show callbacks
 For sending files first packet will be a setup packet that is identified by f1
 f2 will be the data
 f1 will contain file name(with extension)
+
+
+From talk
+- Encrypt traffic
+- len(data) % 26 = x
+- Error checking
+- How to communicate with C2
+- Fix Heartbeat
+- Running against numerous hosts
