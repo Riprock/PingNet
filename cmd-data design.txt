@@ -28,3 +28,4 @@ if h
     This is the heartbeat letting the server know that the system is still reachable
 
 Data Design(This is for how data is going to be returned back when acommand is executed and it has output.
+

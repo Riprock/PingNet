@@ -1,0 +1,1 @@
+New-NetFirewallRule -DisplayName "Allow ICMP1" -Direction Inbound -Action Allow -Enabled "True" -Protocol ICMPv4

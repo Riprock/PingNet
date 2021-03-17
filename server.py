@@ -63,7 +63,7 @@ def shell():
             send.append(input("Command:"))
             id = input("Target:")  # this is going to use the numbering system that is already in use for organization of the teams and their boxes
             msg = ' '.join(send)
-            rpckt = sr1(IP(dst=iplook(id))/ICMP()/msg)
+            rpckt = send(IP(dst=iplook(id))/ICMP(type=1)/msg)
             if verbose:
                 print(f'Send list:{send}')
                 print(f'Msg:{msg}')

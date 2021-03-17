@@ -8,6 +8,8 @@
    - Need to save the information from whatever the current state of the program is in case of crash or accidential exit
    - Add time of last call back. 
    - Figure out how to run this in the background
+   - Mayday mode 
+      This is if they start ruling off ICMP To type 8 and find my rule spawner, This will start sending cmds over type 8 and starting to hit it with diffrent code values
   
 
 ## Testing Notes
