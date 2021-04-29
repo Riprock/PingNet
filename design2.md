@@ -20,6 +20,8 @@ and route everything over type 8
 95 - 145
 ### Heart Beats
 146 - 196
+code 0 - Check
+code 1 - Verify
 
 
 

@@ -4,32 +4,20 @@ from termcolor import colored
 
 class Connector:
     def __init__(self):
-        username = "Ping"
-        password = "Thing"
-        try:
-            self.mydb = mysql.connector.connect(
-                host = "localhost",
-                username = username,
-                password = password
-            )
-            print(mysql)
-            self.cursor = self.mysql.cursor()
-            self.cursor.execute("DROP DATABASE IF EXISTS pingnet")
-            self.cursor.execute("CREATE DATABASE pingnet")
-            self.cursor.execute("USE pingnet")
-            self.cursor.execute("create table if not exists agents("
-                                    "agentID varchar(6) not null primary key,"
-                                    "IPaddr INT(255) UNSIGNED NOT NULL,"
-                                    "os varchar(255) null,"
-                                    "service varchar(255) null,"
-                                    "status varchar(10) not null default \'ALIVE\',"
-                                    "pingtimestamp timestamp null,"
-                                    "team SMALLINT(255) NOT NULL"
-                                    ")")
-        except:
-            print("Cannot connect to database\nPlease check your user,pass, hostanme and verify the service is running")
-USE pingnet;
-INSERT INTO agents(agentID,IPaddr,os,service,team) values (%s, %s, INET_ATON(%s),%s,%s)
+        self.mydb = mysql.connector.connect(host="localhost",user="PingNet",password="ASDFqwer1234",database="pingnet")
+        print(self.mydb)
+        self.cursor = self.mydb.cursor()
+        self.cursor.execute("USE pingnet")
+        self.cursor.execute("create table if not exists agents("
+                                "agentID varchar(6) not null primary key,"
+                                "IPaddr INT(255) UNSIGNED NOT NULL,"
+                                "os varchar(255) null,"
+                                "service varchar(255) null,"
+                                "status varchar(10) not null default \'ALIVE\',"
+                                "pingtimestamp timestamp null,"
+                                "team SMALLINT(255) NOT NULL"
+                                ")")
+
     def add_agent(self, agentID, IPaddr,os ,service, team):
         cmd = "INSERT INTO agents(agentID,IPaddr,os,service,team) values (%s, %s, INET_ATON(%s),%s,%s)"
         values = ("a4f5a6","127.0.0.1", "Windows", "DNS", "01")
@@ -43,18 +31,25 @@ INSERT INTO agents(agentID,IPaddr,os,service,team) values (%s, %s, INET_ATON(%s)
     def dbPull(self):  # PUBLIC
         self.checkStatus()
 
-        self.mycursor.execute("select * from agents order by isnull(service), service asc")
-        return self.mycursor.fetchall()
+        self.cursor.execute("select * from agents order by isnull(service), service asc")
+        return self.cursor.fetchall()
 
     def pullSpecific(self, grouping, value):  # INTERNAL, use this when sending group commands?
         self.checkStatus()
 
-        self.mycursor.execute(f"select agentID from agents where {grouping}=\'{value}\'")
-        return self.mycursor.fetchall()
+        self.cursor.execute(f"select agentID from agents where {grouping}=\'{value}\'")
+        return self.cursor.fetchall()
 
+    def heart_ips(self):
+        self.cursor.execute("SELECT inet_ntoa(IPaddr) FROM pingnet.agents;")
+        return self.cursor.fetchall()
+    
+    def heart_ips_test(self):
+        self.cursor.execute("SELECT inet_ntoa(IPaddr) FROM pingnet.agents WHERE team = 15")
+        return self.cursor.fetchall()
 
     def removeAllAgents(self):  # PUBLIC, removes all agents
-        self.mycursor.execute("delete from agents")
+        self.cursor.execute("delete from agents")
 
         self.mydb.commit()
         print(colored(" All agents removed!\n", "yellow"))
@@ -64,20 +59,20 @@ INSERT INTO agents(agentID,IPaddr,os,service,team) values (%s, %s, INET_ATON(%s)
         sqlcmd = "insert into agents (pingtimestamp) values (%s) where agentID=\'%s\'"
         values = (tstamp, agent)
 
-        self.mycursor.execute(sqlcmd, values)
+        self.cursor.execute(sqlcmd, values)
         self.mydb.commit()
 
 
     def describe(self):
-        self.mycursor.execute("desc agents")
-        for value in self.mycursor.fetchall():
+        self.cursor.execute("desc agents")
+        for value in self.cursor.fetchall():
             print(value)
         print("")
 
 
     # STATUS CHECKS
     def missingStatus(self, ip):  # INTERNAL, after 3 pings missed (timestamp+3min)
-        self.mycursor.execute("update agents "
+        self.cursor.execute("update agents "
                             "set status = \'MIA\'"
                             f"where agentID =\'{ip}\'")
 
@@ -88,7 +83,7 @@ INSERT INTO agents(agentID,IPaddr,os,service,team) values (%s, %s, INET_ATON(%s)
     def deadStatus(self, ip):  # PUBLIC, after agent killed
         sqlcmd = "update agents set status=%s where agentid=%s"
         val = ("SRV-KILLED", str(ip))
-        self.mycursor.execute(sqlcmd, val)
+        self.cursor.execute(sqlcmd, val)
 
         self.mydb.commit()
 
@@ -97,12 +92,12 @@ INSERT INTO agents(agentID,IPaddr,os,service,team) values (%s, %s, INET_ATON(%s)
 
 
     def aliveStatus(self, ip, timestamp):  # INTERNAL, after receiving beacon
-        self.mycursor.execute(f"select agentID from agents where agentID = \'{ip}\'")
-        resp = self.mycursor.fetchall()
+        self.cursor.execute(f"select agentID from agents where agentID = \'{ip}\'")
+        resp = self.cursor.fetchall()
         if len(resp) == 0:
             self.addAgent(ip, timestamp, "ALIVE")
         else:
-            self.mycursor.execute("update agents "
+            self.cursor.execute("update agents "
                                 f"set status = \'ALIVE\',pingtimestamp=\'{timestamp}\' "
                                 f"where agentID = \'{ip}\'")
 
@@ -117,8 +112,8 @@ INSERT INTO agents(agentID,IPaddr,os,service,team) values (%s, %s, INET_ATON(%s)
 
         t2 = datetime.datetime.strptime(strcurrent, "%Y-%m-%d %H:%M:%S")
 
-        self.mycursor.execute("select pingtimestamp,agentID,status from agents")
-        data = self.mycursor.fetchall()
+        self.cursor.execute("select pingtimestamp,agentID,status from agents")
+        data = self.cursor.fetchall()
         if len(data) == 0:
             return  # skip if no agents in table
 
@@ -134,9 +129,9 @@ INSERT INTO agents(agentID,IPaddr,os,service,team) values (%s, %s, INET_ATON(%s)
 
     def cleanDB(self):  # EXTERNAL, called on 'shutdown'
         self.removeAllAgents()
-        self.mycursor.execute("drop table agents")
+        self.cursor.execute("drop table agents")
         self.mydb.commit()
         print(colored("\n Dropping agents table...", "yellow"))
-        self.mycursor.execute("drop database mesaC2")
+        self.cursor.execute("drop database mesaC2")
         self.mydb.commit()
         print(colored("\n Deleting database mesaC2...\n", "yellow"))

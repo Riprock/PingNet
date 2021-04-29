@@ -8,7 +8,7 @@ from db import Connector
 class Server:
     def __init__(self):
         self.verbose = False
-        teaminfo = Connector()
+        self.db = Connector()
         with open("test.txt") as file:
             csv_reader = csv.reader(file, delimiter=',')
             for row in csv_reader:
@@ -44,7 +44,8 @@ class Server:
                 print("Invalid command")
 
     def sender(self, dest, cmd, protype, protcode):
-        rpckt = sr1(IP(dst=self.iplook(dest))/ICMP(type=protype, code=protcode)/cmd)#Fix this to use the database instead
+        print("DEST")
+        #rpckt = sr1(IP(dst=self.iplook(dest))/ICMP(type=protype, code=protcode)/cmd)#Fix this to use the database instead
 
     def send_cmd(self):
         #typ = random.randint(44,94)
@@ -55,7 +56,12 @@ class Server:
         self.sender(target, cmd, typ, code)
 
     def heartbeat(self):
-        print("THis is beat")
+        ips = self.db.heart_ips_test()
+        for ip in ips:
+            print(ip[0])
+            typ = 146
+            code = 0
+            self.sender(ip, "abcdefghijklmnopqrstuvwxyz",typ,code)
     
     def file_transfer(self, fname):
         with open(fname, "rb") as fsend:
@@ -65,4 +71,18 @@ class Server:
     def encryptor(self):
         pass #This is necessary
 
+    def sniffer(self):
+    sniff(filter="icmp", prn=resp_mgmt)
+    # These packets will come in periodically. The heartbeat will just have 1pkt that will have the str hb
+
+    def resp_mgmt(self, pkt, type):
+        if str(pkt.getlayer(ICMP).type) == "146":
+            if str(pkt.getlayer(ICMP).code) == "1":
+                print("Heartbeat Recieved")
+        print(pkt.show())
+        print(pkt.getlayer(ICMP).type)
+        data = pkt.getlayer(ICMP).load.decode()
+        print(data[1::])
+
 server = Server()
+server.heartbeat()
