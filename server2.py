@@ -82,7 +82,7 @@ class Server:
         print(pkt.show())
         print(pkt.getlayer(ICMP).type)
         data = pkt.getlayer(ICMP).load.decode()
-        print(data[1::])
+        print(data)
 
 server = Server()
 server.heartbeat()
