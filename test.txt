@@ -1,1 +1,2 @@
-1,Linux,192.168.0.3
+a4f5a6,127.0.0.1, Windows, DNS, 01
+a4f5a7,127.0.0.2, Windows, AD, 01
